@@ -1,0 +1,38 @@
+/* ── LoadingSpinner Component ── */
+.spinner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-overlay);
+}
+
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.spinner__ring {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 0.7s linear infinite;
+}
+
+.spinner--sm .spinner__ring { width: 20px; height: 20px; border-width: 2px; }
+.spinner--md .spinner__ring { width: 36px; height: 36px; border-width: 3px; }
+.spinner--lg .spinner__ring { width: 56px; height: 56px; border-width: 4px; }
+
+.spinner__text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

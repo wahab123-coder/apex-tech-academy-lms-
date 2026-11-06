@@ -1,0 +1,62 @@
+/* ── Events Page ── */
+.events-section-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-lg);
+  color: var(--color-text-primary);
+}
+
+.events-grid { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.event-card {
+  display: flex; align-items: center; gap: var(--space-lg);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.event-card:hover { transform: translateX(4px); box-shadow: var(--shadow-md); }
+.event-card--past { opacity: 0.6; }
+
+.event-card__date-block {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  width: 62px; flex-shrink: 0;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+}
+.event-card__month { font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.06em; }
+.event-card__day   { font-size: var(--font-size-2xl); font-weight: var(--font-weight-extrabold); color: var(--color-text-primary); line-height: 1.1; }
+
+.event-card__body { flex: 1; }
+.event-card__top  { margin-bottom: var(--space-xs); }
+.event-card__title { font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-sm); }
+
+.event-card__meta {
+  display: flex; gap: var(--space-md); flex-wrap: wrap;
+  margin-bottom: var(--space-xs);
+}
+.event-card__meta-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.event-card__meta-item svg { color: var(--color-primary); flex-shrink: 0; }
+
+.event-card__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+  line-height: var(--line-height-relaxed);
+}
+
+.event-card__action { flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .event-card { flex-wrap: wrap; }
+  .event-card__action { width: 100%; }
+}

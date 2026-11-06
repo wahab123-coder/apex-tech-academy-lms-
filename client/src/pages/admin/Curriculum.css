@@ -1,0 +1,245 @@
+/* ============================================================
+   Admin Curriculum Page
+   ============================================================ */
+
+/* Course selector */
+.curriculum-course-select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-width: 420px;
+  margin-bottom: var(--space-xl);
+}
+
+/* Stats row */
+.curriculum-stats {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.curriculum-stat {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-xl);
+  text-align: center;
+  min-width: 110px;
+}
+
+.curriculum-stat__value {
+  display: block;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.curriculum-stat__label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Section */
+.curriculum-section {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+.curriculum-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+.curriculum-section__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.curriculum-section__count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  background: var(--color-border);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.curriculum-empty {
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Weeks list */
+.weeks-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Week card */
+.week-card {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.week-card:last-child { border-bottom: none; }
+
+.week-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.week-card__header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  flex: 1;
+}
+
+.week-card__number {
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-accent);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.week-card__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.week-card__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  max-width: 500px;
+}
+
+.week-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.week-card__no-topics {
+  padding: var(--space-sm) var(--space-lg) var(--space-md) 76px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Topics list */
+.topics-list {
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-xs) 0;
+}
+
+/* Topic row */
+.topic-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-lg) var(--space-sm) 76px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-fast);
+  gap: var(--space-sm);
+}
+
+.topic-row:last-child { border-bottom: none; }
+.topic-row:hover { background: var(--color-bg-card); }
+
+.topic-row__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+}
+
+.topic-row__num {
+  width: 24px;
+  height: 24px;
+  background: rgba(0,212,255,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.topic-row__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 3px;
+}
+
+.topic-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.topic-row__duration {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.topic-row__delete {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.topic-row__delete:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .week-card__header { flex-direction: column; }
+  .week-card__actions { width: 100%; }
+  .topic-row { padding-left: var(--space-lg); }
+  .week-card__no-topics { padding-left: var(--space-lg); }
+}

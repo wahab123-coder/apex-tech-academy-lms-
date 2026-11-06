@@ -1,0 +1,85 @@
+/* ── Student Payments Page ── */
+
+.payment-stat {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  text-align: center;
+}
+.payment-stat__value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  display: block;
+  margin-bottom: 2px;
+}
+.payment-stat__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  transition: box-shadow var(--transition-fast);
+}
+.payment-row:hover { box-shadow: var(--shadow-sm); }
+
+.payment-row__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+.payment-row__meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Paystack info box */
+.paystack-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: var(--radius-md);
+}
+.paystack-info__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Payment summary */
+.payment-summary {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+}
+.payment-summary__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding: 4px 0;
+}
+.payment-summary__row--total {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-xs);
+  padding-top: var(--space-sm);
+}

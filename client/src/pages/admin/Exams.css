@@ -1,0 +1,35 @@
+/* ── Admin Exams Page ── */
+
+.exam-stat {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-lg);
+  text-align: center;
+  min-width: 100px;
+}
+.exam-stat__value { display: block; font-size: var(--font-size-xl); font-weight: bold; color: var(--color-primary); }
+.exam-stat__label { display: block; font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px; }
+
+.exam-question-list { display: flex; flex-direction: column; gap: var(--space-sm); max-height: 400px; overflow-y: auto; }
+
+.exam-question-item {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+.exam-question-item__header { display: flex; align-items: flex-start; gap: var(--space-sm); }
+.exam-question-item__num {
+  font-size: var(--font-size-xs); font-weight: bold; color: var(--color-primary);
+  background: rgba(0,212,255,0.1); padding: 2px 8px; border-radius: var(--radius-full); white-space: nowrap; flex-shrink: 0;
+}
+.exam-question-item__text { flex: 1; font-size: var(--font-size-sm); color: var(--color-text-primary); }
+.exam-question-item__delete {
+  background: none; border: none; color: var(--color-text-muted); font-size: 1.2rem; cursor: pointer; padding: 0 4px; flex-shrink: 0;
+}
+.exam-question-item__delete:hover { color: var(--color-error); }
+
+.exam-question-item__options { display: flex; flex-direction: column; gap: 4px; margin-top: var(--space-sm); padding-left: 32px; }
+.exam-option { font-size: var(--font-size-sm); color: var(--color-text-muted); padding: 2px 8px; border-radius: var(--radius-sm); }
+.exam-option.correct { color: var(--color-success); font-weight: 600; background: var(--color-success-bg); }

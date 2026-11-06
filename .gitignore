@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+server/.env
+client/.env
+
+# Build outputs
+dist/
+build/
+client/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Uploads (local dev only — use cloud storage in production)
+server/uploads/
+
+# Coverage
+coverage/
+
+# Misc
+*.pem
+
+# Keep upload folder structure but ignore actual uploaded files
+server/uploads/**/*
+!server/uploads/**/.gitkeep

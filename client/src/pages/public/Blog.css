@@ -1,0 +1,46 @@
+/* ── Blog Page ── */
+.blog-filters { display: flex; gap: var(--space-xs); flex-wrap: wrap; margin-bottom: var(--space-xl); }
+
+.blog-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.blog-card {
+  background: var(--color-bg-card); border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border); overflow: hidden;
+  box-shadow: var(--shadow-card); display: flex; flex-direction: column;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.blog-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+.blog-card__thumb {
+  height: 130px; background: var(--gradient-primary);
+  display: flex; align-items: flex-end; padding: var(--space-sm);
+}
+
+.blog-card__body { padding: var(--space-md); flex: 1; display: flex; flex-direction: column; }
+.blog-card__title { font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-sm); line-height: var(--line-height-snug); }
+.blog-card__excerpt { font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: var(--line-height-relaxed); flex: 1; margin-bottom: var(--space-md); }
+
+.blog-card__meta {
+  display: flex; gap: var(--space-md); flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+.blog-card__meta-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: var(--font-size-xs); color: var(--color-text-muted);
+}
+.blog-card__meta-item svg { color: var(--color-primary); }
+
+.blog-card__read {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+  color: var(--color-primary); background: none; border: none;
+  cursor: pointer; padding: 0; text-decoration: none;
+  transition: gap var(--transition-fast);
+}
+.blog-card__read:hover { gap: 10px; color: var(--color-primary-dark); }
+
+@media (max-width: 1024px) { .blog-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .blog-grid { grid-template-columns: 1fr; } }
