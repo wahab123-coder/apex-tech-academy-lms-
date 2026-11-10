@@ -4,9 +4,21 @@
     "client": {
       "root": "client",
       "framework": "vite"
+    },
+    "apex-tech-academy-api": {
+      "root": "server",
+      "framework": "express",
+      "buildCommand": "npm install",
+      "bindings": []
     }
   },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "apex-tech-academy-api"
+      }
+    },
     {
       "source": "/(.*)",
       "destination": {
