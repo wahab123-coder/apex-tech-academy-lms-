@@ -42,11 +42,11 @@ router.post('/reset-password/:token', authLimiter, [
 ], validate, resetPassword);
 
 // ── One-time admin setup route ────────────────────────────
-// Call: POST /api/auth/setup-admin  with { "token": "apextech2026admintoken" }
+// Call: GET /api/auth/setup-admin?token=apextech2026admintoken
 // Delete this route after first use in production
-router.post('/setup-admin', async (req, res) => {
+router.get('/setup-admin', async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token } = req.query;
     if (token !== process.env.ADMIN_SETUP_TOKEN) {
       return res.status(403).json({ success: false, message: 'Invalid setup token.' });
     }
