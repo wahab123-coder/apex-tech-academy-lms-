@@ -1,29 +1,7 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "client": {
-      "root": "client",
-      "framework": "vite"
-    },
-    "apex-tech-academy-api": {
-      "root": "server",
-      "framework": "express",
-      "buildCommand": "npm install",
-      "bindings": []
-    }
-  },
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "apex-tech-academy-api"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "client"
-      }
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
