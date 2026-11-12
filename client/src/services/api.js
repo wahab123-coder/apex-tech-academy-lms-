@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'https://apex-tech-academy-lms.onrender.com/api',
-  timeout: 15000,
+  timeout: 60000, // 60 seconds — email sending can take time
   headers: { 'Content-Type': 'application/json' },
 });
 
