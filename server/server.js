@@ -48,7 +48,19 @@ const app = express();
 app.use(helmet());
 
 app.use(cors({
-  origin:      process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    const allowed = [
+      'http://localhost:5173',
+      'https://apex-tech-academy-lms.vercel.app',
+      process.env.CLIENT_URL,
+    ].filter(Boolean).map((u) => u.replace(/\/$/, '')); // remove trailing slashes
+
+    if (!origin || allowed.includes(origin.replace(/\/$/, ''))) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
   credentials: true,
   methods:     ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
