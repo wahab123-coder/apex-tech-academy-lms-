@@ -51,12 +51,12 @@ router.get('/setup-admin', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Invalid setup token.' });
     }
 
-    const bcrypt = require('bcryptjs');
-    const User   = require('../models/User');
+    const User = require('../models/User');
 
-    let admin = await User.findOne({ email: 'admin@apextechacademy.com' });
+    let admin = await User.findOne({ email: 'admin@apextechacademy.com' }).select('+password');
     if (admin) {
-      admin.password        = await bcrypt.hash('Admin@1234', 12);
+      // Set plain password — pre-save hook will hash it
+      admin.password        = 'Admin@1234';
       admin.role            = 'admin';
       admin.isActive        = true;
       admin.isEmailVerified = true;
@@ -64,12 +64,12 @@ router.get('/setup-admin', async (req, res) => {
       return res.json({ success: true, message: 'Admin password reset.', email: 'admin@apextechacademy.com', password: 'Admin@1234' });
     }
 
-    const hash = await bcrypt.hash('Admin@1234', 12);
+    // Create new admin — pre-save hook hashes the password automatically
     await User.create({
       firstName: 'Admin', lastName: 'User',
       email: 'admin@apextechacademy.com',
       phone: '+234 801 000 0001',
-      password: hash,
+      password: 'Admin@1234',
       role: 'admin',
       isActive: true,
       isEmailVerified: true,
