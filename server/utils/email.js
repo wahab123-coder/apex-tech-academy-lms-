@@ -145,6 +145,7 @@ const sendWelcomeEmail = async (user) => {
 
 /**
  * 2. Congratulations email — sent when admin approves an application
+ *    Includes the admission letter PDF as an attachment
  */
 const sendAdmissionApprovalEmail = async ({ student, course, admissionNumber, admissionDate }) => {
   const formattedDate = new Date(admissionDate).toLocaleDateString('en-GB', {
@@ -184,21 +185,39 @@ const sendAdmissionApprovalEmail = async ({ student, course, admissionNumber, ad
     <a href="${process.env.CLIENT_URL}/student/admission" class="btn">View My Admission</a>
 
     <p>
-      Please save your admission number <strong>(${admissionNumber})</strong> — you will need it
-      for all academy correspondence.
+      Your official admission letter is attached to this email as a PDF.
+      Please save it for your records and present it at orientation.
     </p>
 
     <p>
-      Once again, congratulations! We cannot wait to see you achieve great things at Apex Tech Academy.
+      Please save your admission number <strong>(${admissionNumber})</strong> — you will need it
+      for all academy correspondence.
     </p>
 
     <p>Warm regards,<br/><strong>The Admissions Team</strong><br/>Apex Tech Academy</p>
   `);
 
+  // Generate and attach the admission letter PDF
+  let attachments = [];
+  try {
+    const { generateAdmissionLetterPDF } = require('./pdf');
+    const pdfBuffer = await generateAdmissionLetterPDF({
+      student, course, admissionNumber, admissionDate,
+    });
+    attachments = [{
+      filename:    `Apex-Tech-Admission-Letter-${admissionNumber}.pdf`,
+      content:     pdfBuffer,
+      contentType: 'application/pdf',
+    }];
+  } catch (err) {
+    console.error('Admission letter PDF generation failed:', err.message);
+  }
+
   return sendEmail({
     to:      student.email,
     subject: `Congratulations! You Have Been Admitted — ${course.title} | Apex Tech Academy`,
     html,
+    attachments,
   });
 };
 
@@ -426,6 +445,31 @@ const sendPasswordResetEmail = async ({ user, resetUrl }) => {
   });
 };
 
+/**
+ * 9. Admin/instructor sends a message to a student — email notification
+ */
+const sendMessageEmail = async ({ from, to, subject, body }) => {
+  const html = emailWrapper(`
+    <h2>New Message from Apex Tech Academy</h2>
+    <p>Dear ${to.firstName},</p>
+    <p>You have received a new message from <strong>${from.firstName} ${from.lastName}</strong>:</p>
+    <div class="highlight" style="background:#f0f9ff; border-left:4px solid #00d4ff;">
+      <p style="font-weight:700; margin-bottom:8px; color:#0a0f1e;">${subject || 'No subject'}</p>
+      <p style="white-space:pre-line; color:#374151;">${body}</p>
+    </div>
+    <a href="${process.env.CLIENT_URL}/student/messages" class="btn">View Message</a>
+    <p style="font-size:13px; color:#9ca3af; margin-top:16px;">
+      Log in to your portal to reply to this message.
+    </p>
+  `);
+
+  return sendEmail({
+    to:      to.email,
+    subject: subject ? `${subject} — Apex Tech Academy` : 'New Message — Apex Tech Academy',
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
@@ -436,4 +480,5 @@ module.exports = {
   sendPaymentReceiptEmail,
   sendCertificateEmail,
   sendPasswordResetEmail,
+  sendMessageEmail,
 };
