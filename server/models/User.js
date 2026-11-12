@@ -64,6 +64,16 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
+    // Courses the user is interested in (selected at registration)
+    interests: [{
+      type: String,
+      trim: true,
+    }],
+    // For instructors: subjects they can teach
+    expertise: [{
+      type: String,
+      trim: true,
+    }],
   },
   {
     timestamps: true,

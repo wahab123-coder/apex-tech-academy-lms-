@@ -19,18 +19,25 @@ const sendTokenResponse = (user, statusCode, res) => {
 // ── @POST /api/auth/register ──────────────────────────────
 exports.register = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, password } = req.body;
+    const { firstName, lastName, email, phone, password, role, interests, expertise } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
     }
 
-    // Public registration always creates a Student account.
-    // Role must never be accepted from the request body.
-    const user = await User.create({ firstName, lastName, email, phone, password, role: 'student' });
+    // Only allow student or instructor from public registration — never admin
+    const allowedRoles = ['student', 'instructor'];
+    const userRole = allowedRoles.includes(role) ? role : 'student';
 
-    // Send welcome email (non-blocking — don't fail registration if email fails)
+    const user = await User.create({
+      firstName, lastName, email, phone, password,
+      role: userRole,
+      interests: interests || [],
+      expertise: expertise || [],
+    });
+
+    // Send welcome email (non-blocking)
     sendWelcomeEmail(user).catch(() => {});
 
     sendTokenResponse(user, 201, res);
