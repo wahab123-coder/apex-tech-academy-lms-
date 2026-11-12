@@ -139,21 +139,19 @@ exports.forgotPassword = async (req, res, next) => {
     // Build reset URL for the frontend
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-    // Send the password reset email to the user's registered email address
-    const emailResult = await sendPasswordResetEmail({ user, resetUrl });
+    // Send the password reset email — non-blocking so response returns immediately
+    sendPasswordResetEmail({ user, resetUrl }).catch((err) => {
+      console.error('Password reset email failed:', err.message);
+    });
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`\n🔑  Password Reset Link for ${user.email}:`);
       console.log(`    ${resetUrl}\n`);
-      if (emailResult?.success === false) {
-        console.warn('⚠️   Email send failed — using dev link above instead');
-      }
     }
 
     res.json({
       success: true,
       message: `A password reset link has been sent to ${user.email}. Please check your inbox.`,
-      // In development expose the token so it can be tested without email
       ...(process.env.NODE_ENV === 'development' && { devResetUrl: resetUrl }),
     });
   } catch (err) {
