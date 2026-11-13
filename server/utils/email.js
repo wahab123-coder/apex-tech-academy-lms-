@@ -30,9 +30,14 @@ const getTransporter = async () => {
       host:   process.env.EMAIL_HOST,
       port:   Number(process.env.EMAIL_PORT) || 587,
       secure: Number(process.env.EMAIL_PORT) === 465,
+      // Force IPv4 — Render free plan blocks outbound IPv6
+      family: 4,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
   }
