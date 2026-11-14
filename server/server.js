@@ -44,6 +44,9 @@ const settingsRoutes     = require('./routes/settings');
 
 const app = express();
 
+// ── Trust Render's proxy (required for rate limiting behind reverse proxy) ──
+app.set('trust proxy', 1);
+
 // ── Security Middleware ────────────────────────────────────
 app.use(helmet());
 

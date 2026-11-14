@@ -1,71 +1,94 @@
 /**
  * Apex Tech Academy — Email Utility
- * Wraps nodemailer with reusable send functions for all system emails.
- * Uses Ethereal (fake SMTP) in development — real SMTP in production.
+ * Uses Brevo (Sendinblue) HTTP API in production — no SMTP port needed.
+ * Falls back to Ethereal SMTP in development.
  */
 const nodemailer = require('nodemailer');
+const https      = require('https');
 const { generateCertificatePDF } = require('./pdf');
 
-// ── Create transporter ─────────────────────────────────────
-let transporter;
-
-const getTransporter = async () => {
-  if (transporter) return transporter;
-
-  if (process.env.NODE_ENV === 'development') {
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host:   'smtp.ethereal.email',
-      port:   587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
+// ── Send via Brevo HTTP API (production) ──────────────────
+const sendViaBrevoAPI = ({ to, subject, html, text, attachments = [] }) => {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      sender:   { name: 'Apex Tech Academy', email: process.env.EMAIL_USER || 'noreply@apextechacademy.com' },
+      to:       [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text || html.replace(/<[^>]+>/g, ''),
+      ...(attachments.length > 0 && {
+        attachment: attachments.map((a) => ({
+          name:    a.filename,
+          content: Buffer.isBuffer(a.content)
+            ? a.content.toString('base64')
+            : Buffer.from(a.content).toString('base64'),
+        })),
+      }),
     });
-    console.log(`📧  Ethereal test account: ${testAccount.user}`);
-    console.log(`📧  Preview emails at: https://ethereal.email`);
-  } else {
-    transporter = nodemailer.createTransport({
-      host:   process.env.EMAIL_HOST,
-      port:   Number(process.env.EMAIL_PORT) || 587,
-      secure: Number(process.env.EMAIL_PORT) === 465,
-      // Force IPv4 — Render free plan blocks outbound IPv6
-      family: 4,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-  }
 
-  return transporter;
+    const options = {
+      hostname: 'api.brevo.com',
+      path:     '/v3/smtp/email',
+      method:   'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'api-key':       process.env.BREVO_API_KEY || process.env.EMAIL_PASS,
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve({ success: true, messageId: JSON.parse(data)?.messageId });
+        } else {
+          reject(new Error(`Brevo API error ${res.statusCode}: ${data}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.setTimeout(30000, () => { req.destroy(); reject(new Error('Brevo API request timed out')); });
+    req.write(payload);
+    req.end();
+  });
 };
 
-// ── Core send function (supports optional PDF attachment) ──
+// ── Create Ethereal transporter (development) ─────────────
+let devTransporter;
+const getDevTransporter = async () => {
+  if (devTransporter) return devTransporter;
+  const testAccount = await nodemailer.createTestAccount();
+  devTransporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email', port: 587, secure: false,
+    auth: { user: testAccount.user, pass: testAccount.pass },
+  });
+  console.log(`📧  Ethereal test account: ${testAccount.user}`);
+  return devTransporter;
+};
+
+// ── Core send function ────────────────────────────────────
 const sendEmail = async ({ to, subject, html, text, attachments = [] }) => {
   try {
-    const transport = await getTransporter();
-
-    const info = await transport.sendMail({
-      from:        process.env.EMAIL_FROM || 'Apex Tech Academy <no-reply@apextechacademy.com>',
-      to,
-      subject,
-      html,
-      text:        text || html.replace(/<[^>]+>/g, ''),
-      attachments, // [{ filename, content (Buffer), contentType }]
-    });
-
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV !== 'development') {
+      // Production: use Brevo HTTP API (no SMTP port issues)
+      const result = await sendViaBrevoAPI({ to, subject, html, text, attachments });
       console.log(`📧  Email sent to: ${to} | Subject: ${subject}`);
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) console.log(`📧  Preview URL: ${previewUrl}`);
+      return result;
+    } else {
+      // Development: use Ethereal fake SMTP
+      const transport = await getDevTransporter();
+      const info = await transport.sendMail({
+        from: 'Apex Tech Academy <no-reply@apextechacademy.com>',
+        to, subject, html,
+        text: text || html.replace(/<[^>]+>/g, ''),
+        attachments,
+      });
+      console.log(`📧  Email sent to: ${to} | Preview: ${nodemailer.getTestMessageUrl(info)}`);
+      return { success: true, messageId: info.messageId };
     }
-
-    return { success: true, messageId: info.messageId };
   } catch (err) {
     console.error(`❌  Email send failed to ${to}: ${err.message}`);
     return { success: false, error: err.message };
