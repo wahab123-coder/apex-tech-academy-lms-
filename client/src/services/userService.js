@@ -7,6 +7,7 @@ const userService = {
   update:        (id, data)  => api.put(`/users/${id}`, data),
   setRole:       (id, role)  => api.patch(`/users/${id}/role`, { role }),
   toggleActive:  (id)        => api.patch(`/users/${id}/toggle-active`),
+  remove:        (id)        => api.delete(`/users/${id}`),
 };
 
 export default userService;

@@ -6,41 +6,23 @@ import FormField      from '../../components/ui/FormField';
 import Alert          from '../../components/ui/Alert';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import useApi         from '../../hooks/useApi';
-import useForm        from '../../hooks/useForm';
 import api            from '../../services/api';
 import { userService } from '../../services';
 import './Portal.css';
 
-const columns = [
-  { key: 'name',       label: 'Name',   render: (_, r) => `${r.firstName} ${r.lastName}` },
-  { key: 'email',      label: 'Email' },
-  { key: 'phone',      label: 'Phone',  render: (v) => v || '—' },
-  { key: 'bio',        label: 'Bio',    render: (v) => v ? v.slice(0, 60) + (v.length > 60 ? '…' : '') : '—' },
-  { key: 'isActive',   label: 'Status', render: (v) => <span className={`badge badge--${v ? 'success' : 'muted'}`}>{v ? 'Active' : 'Inactive'}</span> },
-  { key: 'createdAt',  label: 'Joined', render: (v) => new Date(v).toLocaleDateString() },
-  { key: 'actions',    label: 'Actions',render: (_, r) => (
-    <div style={{ display: 'flex', gap: 6 }}>
-      <button className="btn btn--ghost btn--sm">View</button>
-    </div>
-  )},
-];
-
-const validate = (v) => {
-  const e = {};
-  if (!v.firstName.trim()) e.firstName = 'Required';
-  if (!v.lastName.trim())  e.lastName  = 'Required';
-  if (!v.email.trim())     e.email     = 'Required';
-  if (!v.password || v.password.length < 8) e.password = 'Min 8 characters';
-  return e;
-};
-
 function AdminInstructors() {
-  const [search, setSearch]   = useState('');
-  const [addOpen, setAddOpen] = useState(false);
-  const [success, setSuccess] = useState('');
+  const [search,   setSearch]   = useState('');
+  const [addOpen,  setAddOpen]  = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [alert,    setAlert]    = useState(null);
+  const [saving,   setSaving]   = useState(false);
+
+  const [addForm,  setAddForm]  = useState({ firstName: '', lastName: '', email: '', phone: '', password: 'Instructor@2026!', bio: '' });
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', phone: '', bio: '', isActive: true });
 
   const { data, loading, error, refetch } = useApi(
-    () => userService.getAll({ role: 'instructor', limit: 100 }),
+    () => userService.getAll({ role: 'instructor', limit: 200 }),
     { initialData: { users: [] } }
   );
 
@@ -49,19 +31,80 @@ function AdminInstructors() {
     `${i.firstName} ${i.lastName} ${i.email}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  const { values, errors, loading: saving, apiError, handleChange, handleSubmit, setApiError, reset } = useForm({
-    initialValues: { firstName: '', lastName: '', email: '', phone: '', password: 'Instructor@1234', bio: '' },
-    validate,
-    onSubmit: async (vals) => {
-      // Create then promote to instructor role
-      const api = (await import('../../services/api')).default;
-      const res = await api.post('/auth/register', { ...vals, role: 'student' }); // register creates student      await userService.setRole(res.data.user._id, 'instructor');
-      setSuccess(`Instructor ${vals.firstName} ${vals.lastName} created.`);
+  const openEdit = (instructor) => {
+    setSelected(instructor);
+    setEditForm({ firstName: instructor.firstName, lastName: instructor.lastName, phone: instructor.phone || '', bio: instructor.bio || '', isActive: instructor.isActive });
+    setEditOpen(true);
+  };
+
+  const handleAdd = async () => {
+    if (!addForm.firstName.trim() || !addForm.lastName.trim() || !addForm.email.trim()) {
+      setAlert({ type: 'error', msg: 'First name, last name and email are required.' });
+      return;
+    }
+    setSaving(true);
+    try {
+      // Register with instructor role directly
+      const res = await api.post('/auth/register', { ...addForm, role: 'instructor' });
+      setAlert({ type: 'success', msg: `Instructor ${addForm.firstName} ${addForm.lastName} created. Default password: ${addForm.password}` });
       setAddOpen(false);
-      reset();
+      setAddForm({ firstName: '', lastName: '', email: '', phone: '', password: 'Instructor@2026!', bio: '' });
       refetch();
-    },
-  });
+    } catch (err) {
+      setAlert({ type: 'error', msg: err.message || 'Failed to create instructor.' });
+    } finally { setSaving(false); }
+  };
+
+  const handleEdit = async () => {
+    setSaving(true);
+    try {
+      await userService.update(selected._id, editForm);
+      setAlert({ type: 'success', msg: 'Instructor updated successfully.' });
+      setEditOpen(false);
+      refetch();
+    } catch (err) {
+      setAlert({ type: 'error', msg: err.message || 'Failed to update.' });
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (instructor) => {
+    if (!window.confirm(`Delete ${instructor.firstName} ${instructor.lastName}? This cannot be undone.`)) return;
+    try {
+      await userService.remove(instructor._id);
+      setAlert({ type: 'success', msg: `${instructor.firstName} ${instructor.lastName} deleted.` });
+      refetch();
+    } catch (err) {
+      setAlert({ type: 'error', msg: err.message || 'Failed to delete.' });
+    }
+  };
+
+  const handleToggleActive = async (instructor) => {
+    try {
+      await userService.toggleActive(instructor._id);
+      setAlert({ type: 'success', msg: `${instructor.firstName} ${instructor.isActive ? 'deactivated' : 'activated'}.` });
+      refetch();
+    } catch (err) {
+      setAlert({ type: 'error', msg: err.message || 'Failed to toggle status.' });
+    }
+  };
+
+  const columns = [
+    { key: 'name',      label: 'Name',    render: (_, r) => `${r.firstName} ${r.lastName}` },
+    { key: 'email',     label: 'Email' },
+    { key: 'phone',     label: 'Phone',   render: (v) => v || '—' },
+    { key: 'bio',       label: 'Bio',     render: (v) => v ? v.slice(0, 50) + (v.length > 50 ? '…' : '') : '—' },
+    { key: 'expertise', label: 'Expertise', render: (v) => v?.length ? v.slice(0,2).join(', ') + (v.length > 2 ? ` +${v.length-2}` : '') : '—' },
+    { key: 'isActive',  label: 'Status',  render: (v) => <span className={`badge badge--${v ? 'success' : 'muted'}`}>{v ? 'Active' : 'Inactive'}</span> },
+    { key: 'actions',   label: 'Actions', render: (_, row) => (
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <button className="btn btn--ghost btn--sm" onClick={() => openEdit(row)}>Edit</button>
+        <button className="btn btn--outline btn--sm" onClick={() => handleToggleActive(row)}>
+          {row.isActive ? 'Deactivate' : 'Activate'}
+        </button>
+        <button className="btn btn--danger btn--sm" onClick={() => handleDelete(row)}>Delete</button>
+      </div>
+    )},
+  ];
 
   return (
     <div className="portal-page">
@@ -70,8 +113,8 @@ function AdminInstructors() {
         <p className="portal-page__subtitle">Manage instructor accounts and course assignments.</p>
       </div>
 
-      {success && <Alert type="success" onClose={() => setSuccess('')}>{success}</Alert>}
-      {error   && <Alert type="error">{error}</Alert>}
+      {alert && <Alert type={alert.type} onClose={() => setAlert(null)}>{alert.msg}</Alert>}
+      {error  && <Alert type="error">{error}</Alert>}
 
       <div className="section-toolbar">
         <div className="section-toolbar__left">
@@ -87,21 +130,44 @@ function AdminInstructors() {
         <Table columns={columns} data={filtered} emptyMsg="No instructors found." />
       )}
 
+      {/* Add Instructor Modal */}
       <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} title="Add New Instructor"
         footer={<>
           <Button variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
-          <Button loading={saving} onClick={handleSubmit}>Create Instructor</Button>
+          <Button loading={saving} onClick={handleAdd}>Create Instructor</Button>
         </>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-          {apiError && <Alert type="error" onClose={() => setApiError('')}>{apiError}</Alert>}
           <div className="form-card__row">
-            <FormField label="First Name" name="firstName" value={values.firstName} onChange={handleChange} error={errors.firstName} required />
-            <FormField label="Last Name"  name="lastName"  value={values.lastName}  onChange={handleChange} error={errors.lastName}  required />
+            <FormField label="First Name *" name="firstName" value={addForm.firstName} onChange={(e) => setAddForm(p => ({...p, firstName: e.target.value}))} required />
+            <FormField label="Last Name *"  name="lastName"  value={addForm.lastName}  onChange={(e) => setAddForm(p => ({...p, lastName: e.target.value}))}  required />
           </div>
-          <FormField label="Email"    name="email"    type="email"    value={values.email}    onChange={handleChange} error={errors.email}    required />
-          <FormField label="Phone"    name="phone"    type="tel"      value={values.phone}    onChange={handleChange} />
-          <FormField label="Password" name="password" type="password" value={values.password} onChange={handleChange} error={errors.password} required />
-          <FormField label="Bio"      name="bio"      type="textarea" rows={3} value={values.bio} onChange={handleChange} placeholder="Instructor background..." />
+          <FormField label="Email *"    name="email"    type="email"    value={addForm.email}    onChange={(e) => setAddForm(p => ({...p, email: e.target.value}))}    required />
+          <FormField label="Phone"      name="phone"    type="tel"      value={addForm.phone}    onChange={(e) => setAddForm(p => ({...p, phone: e.target.value}))} />
+          <FormField label="Password *" name="password" type="password" value={addForm.password} onChange={(e) => setAddForm(p => ({...p, password: e.target.value}))} required />
+          <FormField label="Bio"        name="bio"      type="textarea" rows={2} value={addForm.bio} onChange={(e) => setAddForm(p => ({...p, bio: e.target.value}))} placeholder="Instructor background and expertise..." />
+          <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+            The instructor will log in with the email and password above.
+          </p>
+        </div>
+      </Modal>
+
+      {/* Edit Instructor Modal */}
+      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title={`Edit — ${selected?.firstName} ${selected?.lastName}`}
+        footer={<>
+          <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
+          <Button loading={saving} onClick={handleEdit}>Save Changes</Button>
+        </>}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <div className="form-card__row">
+            <FormField label="First Name" name="firstName" value={editForm.firstName} onChange={(e) => setEditForm(p => ({...p, firstName: e.target.value}))} />
+            <FormField label="Last Name"  name="lastName"  value={editForm.lastName}  onChange={(e) => setEditForm(p => ({...p, lastName: e.target.value}))} />
+          </div>
+          <FormField label="Phone" name="phone" type="tel"      value={editForm.phone} onChange={(e) => setEditForm(p => ({...p, phone: e.target.value}))} />
+          <FormField label="Bio"   name="bio"   type="textarea" rows={3} value={editForm.bio} onChange={(e) => setEditForm(p => ({...p, bio: e.target.value}))} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" id="instrActive" checked={editForm.isActive} onChange={(e) => setEditForm(p => ({...p, isActive: e.target.checked}))} />
+            <label htmlFor="instrActive" style={{ fontSize: 'var(--font-size-sm)', cursor: 'pointer' }}>Account is active</label>
+          </div>
         </div>
       </Modal>
     </div>
