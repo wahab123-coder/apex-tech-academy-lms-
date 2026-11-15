@@ -30,8 +30,6 @@ router.post('/change-password', protect, [
   body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters.'),
 ], validate, changePassword);
 
-module.exports = router;
-
 // Forgot / reset password
 router.post('/forgot-password', authLimiter, [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required.'),
@@ -41,30 +39,46 @@ router.post('/reset-password/:token', authLimiter, [
   body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters.'),
 ], validate, resetPassword);
 
-// ── One-time admin setup route ────────────────────────────
-// Call: GET /api/auth/setup-admin?token=apextech2026admintoken
-// Delete this route after first use in production
+// ── Universal password reset (admin tool) ─────────────────
+// GET /api/auth/reset-user?token=apextech2026admintoken&email=user@email.com&password=NewPass123
+router.get('/reset-user', async (req, res) => {
+  try {
+    const { token, email, password } = req.query;
+    if (token !== process.env.ADMIN_SETUP_TOKEN) {
+      return res.status(403).json({ success: false, message: 'Invalid setup token.' });
+    }
+    if (!email || !password || password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Email and password (min 8 chars) required.' });
+    }
+    const User = require('../models/User');
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    user.password = password;
+    await user.save();
+    res.json({ success: true, message: `Password reset for ${user.firstName} ${user.lastName}`, email: user.email, role: user.role });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── Admin setup ────────────────────────────────────────────
+// GET /api/auth/setup-admin?token=apextech2026admintoken
 router.get('/setup-admin', async (req, res) => {
   try {
     const { token } = req.query;
     if (token !== process.env.ADMIN_SETUP_TOKEN) {
       return res.status(403).json({ success: false, message: 'Invalid setup token.' });
     }
-
     const User = require('../models/User');
-
     let admin = await User.findOne({ email: 'admin@apextechacademy.com' }).select('+password');
     if (admin) {
-      // Set plain password — pre-save hook will hash it
-      admin.password        = 'Admin@1234';
-      admin.role            = 'admin';
-      admin.isActive        = true;
+      admin.password = 'Admin@1234';
+      admin.role = 'admin';
+      admin.isActive = true;
       admin.isEmailVerified = true;
       await admin.save();
       return res.json({ success: true, message: 'Admin password reset.', email: 'admin@apextechacademy.com', password: 'Admin@1234' });
     }
-
-    // Create new admin — pre-save hook hashes the password automatically
     await User.create({
       firstName: 'Admin', lastName: 'User',
       email: 'admin@apextechacademy.com',
@@ -75,9 +89,10 @@ router.get('/setup-admin', async (req, res) => {
       isEmailVerified: true,
       bio: 'Apex Tech Academy Administrator',
     });
-
     res.status(201).json({ success: true, message: 'Admin created.', email: 'admin@apextechacademy.com', password: 'Admin@1234' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+module.exports = router;
