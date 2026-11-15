@@ -11,7 +11,7 @@ const { generateCertificatePDF } = require('./pdf');
 const sendViaBrevoAPI = ({ to, subject, html, text, attachments = [] }) => {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
-      sender:   { name: 'Apex Tech Academy', email: process.env.EMAIL_USER || 'noreply@apextechacademy.com' },
+      sender:   { name: 'Apex Tech Academy', email: process.env.BREVO_SENDER_EMAIL || 'noreply@apextechacademy.com' },
       to:       [{ email: to }],
       subject,
       htmlContent: html,
