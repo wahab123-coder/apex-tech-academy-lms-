@@ -1,6 +1,7 @@
 const express  = require('express');
 const { body } = require('express-validator');
 const router   = express.Router();
+const bcrypt   = require('bcryptjs');
 
 const { register, login, getMe, logout, changePassword, forgotPassword, resetPassword } = require('../controllers/authController');
 const { protect }      = require('../middleware/auth');
@@ -51,10 +52,13 @@ router.get('/reset-user', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email and password (min 8 chars) required.' });
     }
     const User = require('../models/User');
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-    user.password = password;
-    await user.save();
+
+    // Hash manually and use updateOne to bypass pre-save hook completely
+    const hashed = await bcrypt.hash(password, 12);
+    await User.updateOne({ _id: user._id }, { $set: { password: hashed } });
+
     res.json({ success: true, message: `Password reset for ${user.firstName} ${user.lastName}`, email: user.email, role: user.role });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -70,25 +74,29 @@ router.get('/setup-admin', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Invalid setup token.' });
     }
     const User = require('../models/User');
-    let admin = await User.findOne({ email: 'admin@apextechacademy.com' }).select('+password');
+
+    // Hash manually to bypass pre-save hook
+    const hashed = await bcrypt.hash('Admin@1234', 12);
+
+    let admin = await User.findOne({ email: 'admin@apextechacademy.com' });
     if (admin) {
-      admin.password = 'Admin@1234';
-      admin.role = 'admin';
-      admin.isActive = true;
-      admin.isEmailVerified = true;
-      await admin.save();
+      await User.updateOne({ _id: admin._id }, { $set: { password: hashed, role: 'admin', isActive: true, isEmailVerified: true } });
       return res.json({ success: true, message: 'Admin password reset.', email: 'admin@apextechacademy.com', password: 'Admin@1234' });
     }
+
     await User.create({
       firstName: 'Admin', lastName: 'User',
       email: 'admin@apextechacademy.com',
       phone: '+234 801 000 0001',
-      password: 'Admin@1234',
+      password: hashed,
       role: 'admin',
       isActive: true,
       isEmailVerified: true,
       bio: 'Apex Tech Academy Administrator',
     });
+    // Since we used create(), pre-save hook will hash again — fix that
+    await User.updateOne({ email: 'admin@apextechacademy.com' }, { $set: { password: hashed } });
+
     res.status(201).json({ success: true, message: 'Admin created.', email: 'admin@apextechacademy.com', password: 'Admin@1234' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
