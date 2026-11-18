@@ -62,7 +62,7 @@ function GallerySlider() {
   const [isAnimating, setIsAnimating] = useState(false);
   const intervalRef = useRef(null);
 
-  const { data } = useApi(
+  const { data, loading } = useApi(
     () => galleryService.getAll(),
     { initialData: { items: [] } }
   );
@@ -72,7 +72,8 @@ function GallerySlider() {
     (i) => i.imageUrl
   );
 
-  const slides = realItems.length >= 3
+  // Always show fallback slides until real images load
+  const slides = realItems.length >= 1
     ? realItems.map((item, idx) => ({
         id:       item._id,
         title:    item.title,

@@ -18,6 +18,22 @@ const gradients = [
   'linear-gradient(135deg,#0f1a0a,#203a10)',
 ];
 
+// Static fallback images shown while API loads or if backend is sleeping
+const STATIC_IMAGES = [
+  { _id: 's1', title: 'Students in Tech Class',    category: 'Classes',    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80' },
+  { _id: 's2', title: 'Collaborative Learning',    category: 'Classes',    imageUrl: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=800&q=80' },
+  { _id: 's3', title: 'Student Coding Session',    category: 'Classes',    imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80' },
+  { _id: 's4', title: 'Female Student in Tech',    category: 'Classes',    imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80' },
+  { _id: 's5', title: 'Student Presentation',      category: 'Workshops',  imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80' },
+  { _id: 's6', title: 'Instructor Teaching',       category: 'Classes',    imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80' },
+  { _id: 's7', title: 'Classroom Lecture',         category: 'Classes',    imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80' },
+  { _id: 's8', title: 'One-on-One Mentoring',      category: 'Workshops',  imageUrl: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&q=80' },
+  { _id: 's9', title: 'Modern Computer Lab',       category: 'Other',      imageUrl: 'https://images.unsplash.com/photo-1527430253228-e93688616381?w=800&q=80' },
+  { _id: 's10', title: 'Graduation Ceremony',      category: 'Ceremonies', imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80' },
+  { _id: 's11', title: 'Hackathon Event',          category: 'Events',     imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80' },
+  { _id: 's12', title: 'Certificate Award Ceremony', category: 'Ceremonies', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
+];
+
 function Gallery() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [lightbox,       setLightbox]       = useState(null);
@@ -27,7 +43,10 @@ function Gallery() {
     { initialData: { items: [] } }
   );
 
-  const items = data?.items || [];
+  // Use API items if available, otherwise use static fallback
+  const apiItems = data?.items || [];
+  const items    = apiItems.length > 0 ? apiItems : STATIC_IMAGES;
+
   const filtered = activeCategory === 'All'
     ? items
     : items.filter((i) => i.category === activeCategory);
