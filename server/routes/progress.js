@@ -18,6 +18,30 @@ router.get('/', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/progress/all — Admin/Instructor: all students progress
+router.get('/all', authorize('admin', 'instructor'), async (req, res, next) => {
+  try {
+    const { courseId } = req.query;
+    const filter = {};
+    if (courseId) filter.course = courseId;
+
+    // Instructors only see progress for their own courses
+    if (req.user.role === 'instructor') {
+      const Course = require('../models/Course');
+      const myCourses = await Course.find({ instructor: req.user.id }).select('_id');
+      const myCourseIds = myCourses.map(c => c._id);
+      filter.course = courseId ? courseId : { $in: myCourseIds };
+    }
+
+    const progress = await Progress.find(filter)
+      .populate('student', 'firstName lastName email')
+      .populate('course',  'title')
+      .sort({ updatedAt: -1 });
+
+    res.json({ success: true, count: progress.length, progress });
+  } catch (err) { next(err); }
+});
+
 // POST /api/progress/complete-lesson — Student marks a lesson complete
 router.post('/complete-lesson', authorize('student'), async (req, res, next) => {
   try {
